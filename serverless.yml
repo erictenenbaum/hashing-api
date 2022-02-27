@@ -1,0 +1,81 @@
+service: hashing-api-serverless
+org: erictenenbaum10
+
+provider:
+  name: aws
+  stage: local
+  region: "us-west-1"
+  runtime: nodejs14.x
+  environment:
+    accountId: "#{AWS::AccountId}"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:GetItem
+        - dynamodb:Query
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:${self:provider.environment.accountId}:table/Hashes"
+
+functions:
+  hashes:
+    handler: hashes.handler
+    events:
+      - http:
+          path: /hashes
+          method: post
+          private: false
+  verify:
+    handler: verify.handler
+    events:
+      - http:
+          path: /hashes/verify
+          method: post
+          private: false
+
+resources:
+  Resources:
+    HashesDynamoDBTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: file
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: file
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        TableName: "Hashes"
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-dynamodb-local
+  - serverless-offline
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  serverless-offline:
+    noPrependStageInUrl: true
+  dynamodb:
+    stages:
+      - local
+    start:
+      port: 8000
+      host: localhost
+      inMemory: false
+      dbPath: .
+      migrate: true
+      seed: true
+      sharedDb: true
+    seed:
+      test:
+        sources:
+          - table: Hashes
+            sources: [./data-examples/seed-data.json]

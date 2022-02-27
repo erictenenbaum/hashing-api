@@ -1,0 +1,22 @@
+[
+    {
+        "id": "1",
+        "file": "file1.png",
+        "createdAt": "date"
+    },
+    {
+        "id": "2",
+        "file": "file2.png",
+        "createdAt": "date"
+    },
+    {
+        "id": "3",
+        "file": "file3.png",
+        "createdAt": "date"
+    },
+    {
+        "id": "4",
+        "file": "file4.png",
+        "createdAt": "date"
+    }
+]
